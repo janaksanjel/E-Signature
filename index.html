@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>e-Signature App</title>
+<title>E-Signature App</title>
+<link rel="shortcut icon" href="logo.png" type="image/x-icon">
 <style>
 body {
     font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    background: linear-gradient(to bottom right, #f87979, #0088ff,  #00ff62);
     margin: 0;
     padding: 0;
     display: flex;
@@ -22,58 +23,94 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    max-width: 90%;
+    margin: auto;
 }
 
 canvas {
-    border: 1px solid #ddd;
+    border: 2px solid #ddd;
+    border-radius: 8px;
     width: 100%;
     max-width: 400px;
     height: auto;
     margin-bottom: 20px;
-}
-
-button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-#clearBtn {
-    background-color: #ff0000;
-    border: none;
-    color: white;
-}
-
-#undoBtn {
-    background-color: #1900ff;
-    border: none;
-    color: white;
-}
-
-#downloadBtn {
-    background-color: #00ff08;
-    border: none;
-    color: white;
+    background-color: #f4f4f4; /* subtle background color */
 }
 
 .buttons-container {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.footer {
     margin-top: 20px;
+    font-size: 14px;
+    color: #b4b4b4;
+}
+
+/* Button styling */
+.button {
+    --main-focus: #2d8cf0;
+    --font-color: #ffffff;
+    --bg-color-sub: #dedede;
+    --bg-color: #4caf50; /* green color for buttons */
+    --main-color: #4caf50;
+    position: relative;
+    width: calc(33.33% - 10px);
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    color: var(--font-color);
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.button:hover {
+    background-color: #00ff0d; /* darker green color on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.button:active {
+    transform: translateY(2px);
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .button {
+        width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 480px) {
+    .button {
+        width: 100%;
+    }
 }
 
 </style>
 </head>
 <body>
 <div class="container">
-    <h2>e-Signature App</h2>
-    <canvas id="canvas" width="400" height="200"></canvas>
-    <div class="buttons-container">
-        <button id="clearBtn">Clear</button>
-        <button id="undoBtn">Undo</button>
-        <button id="downloadBtn">Download</button>
+    <div class="signature-background">
+        <h2 class="signature-header">E-Signature App</h2>
+        <canvas id="canvas" width="600" height="300"></canvas>
+        <div class="buttons-container">
+            <button class="button" id="clearBtn">Clear</button>
+            <button class="button" id="undoBtn">Undo</button>
+            <button class="button" id="downloadBtn">Download</button>
+        </div>
+    </div>
+    <div class="footer">
+        Created by JanakSanjel &copy; 2024
     </div>
 </div>
 <script>
@@ -129,17 +166,25 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     document.getElementById('downloadBtn').addEventListener('click', () => {
-        // Set canvas background color to white
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Create a temporary canvas element
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
 
-        // Draw the signature strokes
+        // Set the dimensions of the temporary canvas
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+
+        // Set canvas background color to white (like paper)
+        tempCtx.fillStyle = '#fff';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        // Draw the signature strokes on the temporary canvas
         strokes.forEach(stroke => {
-            ctx.putImageData(stroke, 0, 0);
+            tempCtx.putImageData(stroke, 0, 0);
         });
 
-        // Save canvas as PNG
-        const dataUrl = canvas.toDataURL("image/png");
+        // Save temporary canvas as PNG
+        const dataUrl = tempCanvas.toDataURL("image/png");
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = 'signature.png';
