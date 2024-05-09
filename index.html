@@ -8,7 +8,7 @@
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom right, #f87979, #0088ff,  #00ff62);
+    background: linear-gradient(to bottom right, #cf1d1d, #1676ca,  #1eb156);
     margin: 0;
     padding: 0;
     display: flex;
@@ -19,7 +19,7 @@ body {
 
 .container {
     text-align: center;
-    background-color: #fff;
+    background: linear-gradient(to bottom right, #ff0000, #0088ff,  #00ff62);
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -28,13 +28,13 @@ body {
 }
 
 canvas {
-    border: 2px solid #ddd;
+    border: 2px solid #000000;
     border-radius: 8px;
     width: 100%;
     max-width: 400px;
     height: auto;
     margin-bottom: 20px;
-    background-color: #f4f4f4; /* subtle background color */
+    background-color: #d1cccc; /* subtle background color */
 }
 
 .buttons-container {
@@ -55,8 +55,8 @@ canvas {
     --main-focus: #2d8cf0;
     --font-color: #ffffff;
     --bg-color-sub: #dedede;
-    --bg-color: #4caf50; /* green color for buttons */
-    --main-color: #4caf50;
+    --bg-color: #0bb410; /* green color for buttons */
+    --main-color: #0c9b11;
     position: relative;
     width: calc(33.33% - 10px);
     height: 40px;
@@ -123,20 +123,21 @@ document.addEventListener("DOMContentLoaded", function() {
     let strokes = [];
     let undoStack = [];
 
-    canvas.addEventListener('mousedown', (e) => {
+    // Mouse event listeners
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', endDrawing);
+    canvas.addEventListener('mouseout', endDrawing);
+
+    // Touch event listeners
+    canvas.addEventListener('touchstart', startDrawingTouch);
+    canvas.addEventListener('touchmove', drawTouch);
+    canvas.addEventListener('touchend', endDrawing);
+
+    function startDrawing(e) {
         isDrawing = true;
         [lastX, lastY] = [e.offsetX, e.offsetY];
-    });
-
-    canvas.addEventListener('mousemove', draw);
-
-    canvas.addEventListener('mouseup', () => {
-        isDrawing = false;
-        strokes.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-        undoStack = []; // Clear the undo stack when a new stroke is drawn
-    });
-
-    canvas.addEventListener('mouseout', () => isDrawing = false);
+    }
 
     function draw(e) {
         if (!isDrawing) return;
@@ -149,13 +150,40 @@ document.addEventListener("DOMContentLoaded", function() {
         [lastX, lastY] = [e.offsetX, e.offsetY];
     }
 
-    document.getElementById('clearBtn').addEventListener('click', () => {
+    function endDrawing() {
+        if (isDrawing) {
+            isDrawing = false;
+            strokes.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            undoStack = [];
+        }
+    }
+
+    // Touch event functions
+    function startDrawingTouch(e) {
+        const touch = e.touches[0];
+        startDrawing({
+            offsetX: touch.clientX - canvas.getBoundingClientRect().left,
+            offsetY: touch.clientY - canvas.getBoundingClientRect().top
+        });
+    }
+
+    function drawTouch(e) {
+        const touch = e.touches[0];
+        draw({
+            offsetX: touch.clientX - canvas.getBoundingClientRect().left,
+            offsetY: touch.clientY - canvas.getBoundingClientRect().top
+        });
+    }
+
+    // Clear canvas function
+    function clearCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         strokes = [];
         undoStack = [];
-    });
+    }
 
-    document.getElementById('undoBtn').addEventListener('click', () => {
+    // Undo function
+    function undo() {
         if (strokes.length > 0) {
             undoStack.push(strokes.pop());
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,27 +191,22 @@ document.addEventListener("DOMContentLoaded", function() {
                 ctx.putImageData(stroke, 0, 0);
             });
         }
-    });
+    }
 
-    document.getElementById('downloadBtn').addEventListener('click', () => {
-        // Create a temporary canvas element
+    // Download function
+    function downloadSignature() {
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
 
-        // Set the dimensions of the temporary canvas
         tempCanvas.width = canvas.width;
         tempCanvas.height = canvas.height;
-
-        // Set canvas background color to white (like paper)
         tempCtx.fillStyle = '#fff';
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-        // Draw the signature strokes on the temporary canvas
         strokes.forEach(stroke => {
             tempCtx.putImageData(stroke, 0, 0);
         });
 
-        // Save temporary canvas as PNG
         const dataUrl = tempCanvas.toDataURL("image/png");
         const link = document.createElement('a');
         link.href = dataUrl;
@@ -191,7 +214,12 @@ document.addEventListener("DOMContentLoaded", function() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    });
+    }
+
+    // Event listeners for buttons
+    document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('downloadBtn').addEventListener('click', downloadSignature);
 });
 </script>
 </body>
